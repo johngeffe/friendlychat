@@ -12,6 +12,10 @@ var SnackBar = React.createClass({
 });
 
 var MessageTextForm = React.createClass({
+    componentWillMount: function () {
+        this.firebaseRefs = firebase.database().ref('messages');
+        this.auth = firebase.auth();
+    },
     onChange: function (e) {
         this.setState({ text: e.target.value });
     },
@@ -45,10 +49,6 @@ var MessageTextForm = React.createClass({
             this.signInSnackbar = document.getElementById('must-signin-snackbar');
             this.signInSnackbar.MaterialSnackbar.showSnackbar(data);
         }
-    },
-    componentWillMount: function () {
-        this.firebaseRefs = firebase.database().ref('messages');
-        this.auth = firebase.auth();
     },
     componentDidUpdate: function () {
         // enables/disables submit button based on length of input value.
@@ -87,7 +87,6 @@ var MessageImageForm = React.createClass({
     },
     setImageUrl: function (imageUri, imgElement) {
         if (imageUri.startsWith('gs://')) {
-            imgElement.src = FriendlyChat.LOADING_IMAGE_URL; // Display a loading image first.
             this.storage.refFromURL(imageUri).getMetadata().then(function (metadata) {
                 imgElement.src = metadata.downloadURLs[0];
             });
@@ -97,16 +96,14 @@ var MessageImageForm = React.createClass({
     },
     saveImageMessage: function (event) {
         var file = event.target.files[0];
-        // Clear the selection in the file picker input.
         this.imageForm.reset();
         if (!file.type.match('image.*')) {
             var data = {
                 message: 'You can only share images',
                 timeout: 2000
             };
-            //         this.signInSnackbar = document.getElementById('must-signin-snackbar');
-            //         this.signInSnackbar.MaterialSnackbar.showSnackbar(data);
-            console.log(data.message);
+            this.signInSnackbar = document.getElementById('must-signin-snackbar');
+            this.signInSnackbar.MaterialSnackbar.showSnackbar(data);
             return;
         }
     },
@@ -142,7 +139,6 @@ var MessageImageForm = React.createClass({
                 uploadTask.on('state_changed', null, function (error) {
                     console.error('There was an error uploading a file to Firebase Storage:', error);
                 }, function () {
-
                     // Get the file's Storage URI and update the chat message placeholder.
                     var filePath = uploadTask.snapshot.metadata.fullPath;
                     data.update({ imageUrl: this.storage.ref(filePath).toString() });
@@ -172,16 +168,14 @@ var MessageImageForm = React.createClass({
 });
 
 var MessageItems = React.createClass({
-    componentDidMount: function () {
+    componentWillMount: function () {
         this.database = firebase.database();
         this.auth = firebase.auth();
-        this.storage = firebase.storage();
     },
     getInitialState: function () {
         return { imgSrc: '' }
     },
     render: function () {
-        //setTimeout(function() {this.classList.add('visible')}, 1);
         var createItem = function (message, index) {
             var divStyle = { backgroundImage: 'url(' + message.photoURL + ')' };
             var myKey = message['.key'];
@@ -207,11 +201,12 @@ var MessageItems = React.createClass({
                     return (
                         <div className="message-container" key={myKey} ref={function (element) {
                             if (element) {
-                                setTimeout(function () { element.classList.add('visible') }, 5);
+                                setTimeout(function () { element.classList.add('visible') }, 1);
                             }
                         } }>
                             <div className="spacing"><div className="pic" style={divStyle} ></div></div>
                             <div className="message"><img ref={function (element) {
+                                // have to use firebase.storage() directly here?
                                 firebase.storage().refFromURL(message.imageUrl).getMetadata().then(function (metadata) {
                                     element.src = metadata.downloadURLs[0];
                                 });
@@ -291,8 +286,8 @@ var MessageContainer = React.createClass({
                     <div id="messages-card" className="mdl-card mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-cell--6-col-tablet mdl-cell--6-col-desktop">
                         <div className="mdl-card__supporting-text mdl-color-text--grey-600">
                             <MessageList />
-                            <MessageTextForm {...this.props} />
-                            <MessageImageForm {...this.props} />
+                            <MessageTextForm />
+                            <MessageImageForm />
                         </div>
                     </div>
                 </div>
@@ -303,9 +298,7 @@ var MessageContainer = React.createClass({
 
 var UserContainer = React.createClass({
     componentWillMount: function () {
-        this.database = firebase.database();
         this.auth = firebase.auth();
-        this.storage = firebase.storage();
     },
     getInitialState: function () {
         var divStyle = {
@@ -390,17 +383,14 @@ var HeaderSection = React.createClass({
 });
 
 var MainApp = React.createClass({
-    componentWillMount: function () {
-        this.database = firebase.database();
-        this.auth = firebase.auth();
-        this.storage = firebase.storage();
-    },
     componentDidMount: function () {
         // this is necessary for Material Design Lite.
+        // only necessary at the top level component
         componentHandler.upgradeDom();
     },
     render: function () {
         return (
+
             <div className="demo-layout mdl-layout mdl-js-layout mdl-layout--fixed-header">
                 <HeaderSection />
                 <MessageContainer />
