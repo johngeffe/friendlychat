@@ -50,23 +50,19 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en">
   <link rel="stylesheet" href="styles/main.css">
 
+  <!-- ReactJs Components -->
+  <script src="https://fb.me/react-15.2.0.js"></script>
+  <script src="https://fb.me/react-dom-15.2.0.js"></script>
+
+  <!-- ReactJSX Support -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.min.js"></script>
+
+  <!-- ReactFire -->
+  <script src="https://cdn.firebase.com/libs/reactfire/1.0.0/reactfire.min.js"></script>
+
 </head>
 
 <body>
-    <script>
-    var WebFontConfig = {
-      google: { families: [ 'Roboto:400,300,500:latin' ] }
-    };
-    (function() {
-      var wf = document.createElement('script');
-      wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
-      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
-      wf.type = 'text/javascript';
-      wf.async = 'true';
-      var s = document.getElementsByTagName('script')[0];
-      s.parentNode.insertBefore(wf, s);
-    })();
-  </script>
   <div id="mainApp"></div>
 
   <!-- Firebase -->
@@ -74,7 +70,7 @@
      * TODO(DEVELOPER): Paste the initialization snippet from: Firebase Console > Overview > Add Firebase to your web app. *
      *********************************************************************************************************************** -->
 
-  <script src="./build/appBundle.js"></script>
+  <script type="text/babel" src="scripts/main.js"></script>
 </body>
 
 </html>
