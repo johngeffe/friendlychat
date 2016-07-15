@@ -1,15 +1,33 @@
-var SnackBar = React.createClass({
-    render: function () {
-        return (
-            <div>
-                <div id="must-signin-snackbar" className="mdl-js-snackbar mdl-snackbar" >
-                    <div className="mdl-snackbar__text"></div>
-                    <button className="mdl-snackbar__action" type="button"></button>
-                </div >
-            </div>
-        )
-    }
-});
+import React from 'react';
+import ReactDOM from 'react-dom';
+import Firebase from 'firebase';
+import ReactFireMixin from 'reactfire';
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider'; // used in main app
+import injectTapEventPlugin from 'react-tap-event-plugin';
+import AppBar from 'material-ui/AppBar'; // used in Header
+import Snackbar from 'material-ui/Snackbar'; // used in Messages
+import RaisedButton from 'material-ui/RaisedButton'; // used in Messages
+import FlatButton from 'material-ui/FlatButton'; // used in header
+import TextField from 'material-ui/TextField'; // used in forms
+import IconButton from 'material-ui/IconButton'; // used in forms
+import Image from 'material-ui/svg-icons/image/image'; // used in forms
+import CommunicationChatBubbleOutline from 'material-ui/svg-icons/communication/chat-bubble-outline'; // used in forms
+import ActionAccountCircle from 'material-ui/svg-icons/action/account-circle'; // used header
+import Avatar from 'material-ui/Avatar';
+import Paper from 'material-ui/Paper';
+
+import {FbKeys} from '../private/apikeys.js';
+// Needed for onTouchTap
+// http://stackoverflow.com/a/34015469/988941
+injectTapEventPlugin();
+
+var config = FbKeys;
+firebase.initializeApp(config);
+
+const style = {
+    margin: '15px 0 0 10px',
+    width: '120px'
+};
 
 var MessageTextForm = React.createClass({
     componentWillMount: function () {
@@ -20,7 +38,7 @@ var MessageTextForm = React.createClass({
         this.setState({ text: e.target.value });
     },
     getInitialState: function () {
-        return { text: '', btnState: false, messages: [] };
+        return { text: '', btnState: false, messages: [], message: 'snack bar message', open: false };
     },
     handleSubmit: function (e) {
         e.preventDefault();
@@ -42,13 +60,13 @@ var MessageTextForm = React.createClass({
                 });
             }
         } else {
-            var data = {
-                message: 'You must sign-in first',
-                timeout: 2000
-            };
-            this.signInSnackbar = document.getElementById('must-signin-snackbar');
-            this.signInSnackbar.MaterialSnackbar.showSnackbar(data);
+            this.setState({ open: true, message: 'You must sign-in first' });
         }
+    },
+    handleRequestClose: function () {
+        this.setState({
+            open: false,
+        })
     },
     componentDidUpdate: function () {
         // enables/disables submit button based on length of input value.
@@ -63,20 +81,50 @@ var MessageTextForm = React.createClass({
     },
     render: function () {
         return (
-            <form id="message-form" action="#">
-                <div className="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input className="mdl-textfield__input" type="text" id="message" onChange={this.onChange} value={this.state.text}/>
-                    <label className="mdl-textfield__label" htmlFor="message">Message...</label>
-                </div>
-                <button id="submit" disabled={!this.state.btnState} type="submit" onClick={this.handleSubmit} className="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">
-                    Send
-                </button>
-            </form>
+            <div>
+                <form action="#"
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        float: 'left',
+                        paddingLeft: '16px'
+                    }} >
+                    <TextField type="text"
+                        value={this.state.text}
+                        onChange={this.onChange}
+                        floatingLabelText={'Message...'}
+                        floatingLabelFixed={true}
+                        />
+                    <RaisedButton label="send"
+                        style={{ marginTop: '18px', marginLeft: '18px', marginBottom: '0px', width: '80px' }}
+                        disabled={!this.state.btnState}
+                        onTouchTap={this.handleSubmit}
+                        />
+                    <Snackbar
+                        open={this.state.open}
+                        message={this.state.message}
+                        autoHideDuration={2000}
+                        onRequestClose={this.handleRequestClose}
+                        />
+                </form>
+            </div>
         )
     }
 });
-
+const iconStyle = {
+    mediumIcon: {
+        width: 48,
+        height: 48,
+        top: '0px',
+        left: '-25px',
+        position: 'relative',
+        color: '#FFC400'
+    }
+};
 var MessageImageForm = React.createClass({
+    getInitialState: function () {
+        return { message: 'snack bar message', open: false };
+    },
     componentWillMount: function () {
         this.firebaseRefs = firebase.database().ref('messages');
         this.auth = firebase.auth();
@@ -98,31 +146,19 @@ var MessageImageForm = React.createClass({
         var file = event.target.files[0];
         this.imageForm.reset();
         if (!file.type.match('image.*')) {
-            var data = {
-                message: 'You can only share images',
-                timeout: 2000
-            };
-            this.signInSnackbar = document.getElementById('must-signin-snackbar');
-            this.signInSnackbar.MaterialSnackbar.showSnackbar(data);
+            this.setState({ open: true, message: 'You can only share images' });
             return;
         }
     },
     handleClick: function (e) {
         e.preventDefault();
         var file = e.target.files[0];
-        console.log(file);
         if (!file.type.match('image.*')) {
-            var data = {
-                message: 'You can only share images',
-                timeout: 2000
-            };
-            this.signInSnackbar = document.getElementById('must-signin-snackbar');
-            this.signInSnackbar.MaterialSnackbar.showSnackbar(data);
+            this.setState({ open: true, message: 'You can only share images' });
             return;
         }
         if (this.auth.currentUser) {
             var currentUser = this.auth.currentUser;
-            console.log(currentUser.displayName);
             this.firebaseRefs.push({
                 email: currentUser.email,
                 name: currentUser.displayName,
@@ -145,23 +181,28 @@ var MessageImageForm = React.createClass({
                 }.bind(this));
             }.bind(this));
         } else {
-            var data = {
-                message: 'You must sign-in first',
-                timeout: 2000
-            };
-            this.signInSnackbar = document.getElementById('must-signin-snackbar');
-            this.signInSnackbar.MaterialSnackbar.showSnackbar(data);
+            this.setState({ open: true, message: 'You must sign-in first' });
         }
     },
     render: function () {
         return (
-            <form id="image-form" action="#">
-                <input id="mediaCapture" type="file" accept="image/*,capture=camera" onChange={this.handleClick} />
-                <button id="submitImage" title="Add an image" onClick={function () {
-                    this.mediaCapture.click();
-                }.bind(this) } className="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color--amber-400 mdl-color-text--white">
-                    <i className="material-icons">image</i>
-                </button>
+            <form action="#" style={{
+                display: 'flex',
+                flexDirection: 'row',
+                width: '40px',
+                float: 'right'
+            }}>
+                <input hidden={true} type="file" accept="image/*,capture=camera" onChange={this.handleClick} />
+                <IconButton  onClick={function () { this.mediaCapture.click(); }.bind(this) }
+                    iconStyle={iconStyle.mediumIcon}>
+                    <Image />
+                </IconButton>
+                <Snackbar
+                    open={this.state.open}
+                    message={this.state.message}
+                    autoHideDuration={2000}
+                    onRequestClose={this.handleRequestClose}
+                    />
             </form>
         )
     }
@@ -186,27 +227,42 @@ var MessageItems = React.createClass({
                 var myText = message.text;
                 myText.replace(/\n/g, '<br>');
                 return (
-                    <div className="message-container" key={myKey} ref={function (element) {
+                    <div className="message-container" key={myKey} style={{ paddingLeft: '10px' }} ref={function (element) {
                         if (element) {
                             setTimeout(function () { element.classList.add('visible') }, 1);
                         }
                     } }>
-                        <div className="spacing"><div className="pic" style={divStyle} ></div></div>
-                        <div className="message">{myText}</div>
-                        <div className="name">{message.name} || {myKey}</div>
-                    </div>
+                        <div style={{
+                            display: 'table-cell',
+                            verticalAlign: 'top',
+                        }}><div className="pic" style={divStyle} ></div></div>
+                        <div style={{
+                            display: ' table-cell',
+                            width: 'calc(100% - 40px)',
+                            padding: '5px 0 5px 10px'
+                        }}>{myText}</div>
+                        <div style={{
+                            display: 'inline - block',
+                            width: '100 %',
+                            paddingLeft: '40px',
+                            color: '#bbb',
+                            fontStyle: 'italic',
+                            fontSize: '12px',
+                            boxSizing: 'border-box',
+                        }}>{message.name} || {myKey}</div>
+                    </div >
                 );
             } else if (message.imageUrl) {
                 if (message.imageUrl.startsWith('gs://')) {
                     return (
-                        <div className="message-container" key={myKey} ref={function (element) {
+                        <div className="message-container" style={{ paddingLeft: '10px' }} key={myKey} ref={function (element) {
                             if (element) {
                                 setTimeout(function () { element.classList.add('visible') }, 1);
                             }
                         } }>
                             <div className="spacing"><div className="pic" style={divStyle} ></div></div>
                             <div className="message"><img ref={function (element) {
-                                // have to use firebase.storage() directly here?
+                                // why do I have to use firebase.storage() directly here?
                                 firebase.storage().refFromURL(message.imageUrl).getMetadata().then(function (metadata) {
                                     element.src = metadata.downloadURLs[0];
                                 });
@@ -216,7 +272,7 @@ var MessageItems = React.createClass({
                     )
                 } else {
                     return (
-                        <div className="message-container" key={myKey} ref={function (element) {
+                        <div className="message-container" style={{ paddingLeft: '10px' }} key={myKey} ref={function (element) {
                             if (element) {
                                 setTimeout(function () { element.classList.add('visible') }, 1);
                             }
@@ -268,6 +324,7 @@ var MessageList = React.createClass({
         }.bind(this));
     },
     componentDidUpdate: function () {
+        // scroll the message window.  Does not work well (at all) with images.
         this.messageList = document.getElementById('messages');
         this.messageList.scrollTop = this.messageList.scrollHeight;
     },
@@ -280,50 +337,48 @@ var MessageList = React.createClass({
 
 var MessageContainer = React.createClass({
     render: function () {
+        // Had to remove the "mdl-card" class from the message-card element.
+        // it was interfering with the Material-ui Snackbar component.
+        // an overflow element was being set to hidden.  I have not been
+        // able to locate it in the css files.
         return (
-            <main className="mdl-layout__content mdl-color--grey-100">
-                <div id="messages-card-container" className="mdl-cell mdl-cell--12-col mdl-grid">
-                    <div id="messages-card" className="mdl-card mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-cell--6-col-tablet mdl-cell--6-col-desktop">
-                        <div className="mdl-card__supporting-text mdl-color-text--grey-600">
-                            <MessageList />
-                            <MessageTextForm />
-                            <MessageImageForm />
-                        </div>
-                    </div>
-                </div>
+            <main>
+                <Paper style={{ minWidth: '427px', width: '427px', margin: '24px', height: '703px', }}>
+                    <MessageList />
+                    <MessageTextForm/>
+                    <MessageImageForm />
+                </Paper>
             </main>
         )
     }
 });
 
-var UserContainer = React.createClass({
+var AppRight = React.createClass({
     componentWillMount: function () {
         this.auth = firebase.auth();
     },
     getInitialState: function () {
-        var divStyle = {
-            backgroundImage: 'url(/images/profile_placeholder.png)'
+        return {
+            uAuth: false, picSrc: '', userName: '', userContainer: {}
         };
-        return { uAuth: false, userName: 'No User', photoStyle: divStyle, photoURL: 'url(/images/profile_placeholder.png)' };
     },
     componentDidMount: function () {
         this.auth.onAuthStateChanged(function (user) {
             if (user) {
                 var profilePicUrl = user.photoURL;
                 var userName = user.displayName;
-                var divStyle = {
-                    backgroundImage: 'url(' + (profilePicUrl || '/images/profile_placeholder.png') + ')'
-                };
-                this.setState({ uAuth: true, userName: userName, photoStyle: divStyle, photoURL: profilePicUrl });
+                this.setState({
+                    uAuth: true, userName: userName, picSrc: profilePicUrl
+                });
             } else {
-                var divStyle = {
-                    backgroundImage: 'url(/images/profile_placeholder.png)'
-                };
-                this.setState({ uAuth: false, userName: '', photoStyle: divStyle, photoURL: 'url(/images/profile_placeholder.png)' });
+                this.setState({
+                    uAuth: false, userName: '', picSrc: ''
+                });
             }
         }.bind(this));
     },
     clickHandler: function () {
+        console.log('click');
         if (!this.auth.currentUser) {
             var provider = new firebase.auth.GoogleAuthProvider();
             provider.addScope('https://www.googleapis.com/auth/plus.login');
@@ -353,15 +408,50 @@ var UserContainer = React.createClass({
     },
     render: function () {
         return (
-            <div id="user-container">
-                <div hidden={!this.state.uAuth} id="user-pic" style={this.state.photoStyle}></div>
-                <div hidden={!this.state.uAuth} id="user-name" >{this.state.userName}</div>
-                <button hidden={!this.state.uAuth} id="sign-out" onClick={this.clickHandler} className="mdl-button mdl-js-button mdl-js-ripple-effect mdl-color-text--white">
-                    Sign-out
-                </button>
-                <button hidden={this.state.uAuth} id="sign-in" onClick={this.clickHandler} className="mdl-button mdl-js-button mdl-js-ripple-effect mdl-color-text--white">
-                    <i className="material-icons">account_circle</i>Sign-in with Google
-                </button>
+            <div>
+                <FlatButton label='Sign-in with google' onTouchTap={this.clickHandler} hidden={this.state.uAuth} style={{
+                    color: '#FFFFFF',
+                    fontSize: '16px',
+                    top: '13px',
+                    right: '-20px',
+                    position: 'relative',
+                }} >
+                    <ActionAccountCircle style={{
+                        color: '#FFFFFF',
+                        width: 36,
+                        height: 36,
+                        top: '-1px',
+                        right: '-12px',
+                        position: 'relative'
+                    }}  />
+                </FlatButton>
+                <Avatar src={this.state.picSrc} hidden={!this.state.uAuth}
+                    style={{
+                        position: 'relative',
+                        right: '0px',
+                        top: '10px',
+                        width: '40px',
+                        height: '40px',
+                        backgroundSize: '40px',
+                        backgroundRepeat: 'no-repeat',
+                        boarderRadius: '20px'
+                    }} />
+                <span style={{
+                    fontSize: '16px',
+                    position: 'relative',
+                    top: '10px',
+                    paddingLeft: '20px'
+                }}>{this.state.userName}</span>
+                <FlatButton label={'Sign-out'} onTouchTap={this.clickHandler} hidden={!this.state.uAuth} style={{
+                    color: '#FFFFFF',
+                    fontSize: '16px',
+                    paddingLeft: '10px',
+                    paddingRight: '10px',
+                    justifyContent: 'flex-end',
+                    top: '10px',
+                    position: 'relative'
+                }}>
+                </FlatButton>
             </div>
         )
     }
@@ -370,34 +460,53 @@ var UserContainer = React.createClass({
 var HeaderSection = React.createClass({
     render: function () {
         return (
-            <header className="mdl-layout__header mdl-color-text--white mdl-color--light-blue-700">
-                <div className="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet mdl-grid">
-                    <div className="mdl-layout__header-row mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet mdl-cell--12-col-desktop">
-                        <h3><i className="material-icons">chat_bubble_outline</i> Friendly Chat ReactJS</h3>
-                    </div>
-                    <UserContainer />
-                </div>
+            <header>
+                <AppBar
+                    title={'Friendly Chat ReactJS'}
+                    iconElementLeft={<CommunicationChatBubbleOutline style={
+                        {
+                            width: 38,
+                            height: 38,
+                            color: '#FFFFFF',
+                            top: '14px',
+                            position: 'relative'
+                        }
+                    }/>}
+                    iconElementRight={<AppRight />}
+                    style={{
+                        backgroundColor: '#0288D1',
+                        color: '#FFFFFF',
+                        minHeight: '72px',
+                        paddingLeft:'40px'
+                    }}
+                    titleStyle={{fontSize:'32px',paddingTop:'6px'}}
+                    />
             </header>
         )
     }
 });
 
-var MainApp = React.createClass({
-    componentDidMount: function () {
-        // this is necessary for Material Design Lite.
-        // only necessary at the top level component
-        componentHandler.upgradeDom();
-    },
+var MainAppWrapper = React.createClass({
     render: function () {
         return (
-
-            <div className="demo-layout mdl-layout mdl-js-layout mdl-layout--fixed-header">
+            <div>
                 <HeaderSection />
                 <MessageContainer />
-                <SnackBar />
             </div>
         )
     }
-})
+});
+
+var MainApp = React.createClass({
+    render: function () {
+        return (
+            <div>
+                <MuiThemeProvider>
+                    <MainAppWrapper/>
+                </MuiThemeProvider>
+            </div>
+        )
+    }
+});
 
 ReactDOM.render(<MainApp />, document.getElementById('mainApp'));
