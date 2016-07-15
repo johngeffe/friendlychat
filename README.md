@@ -1,7 +1,6 @@
-# Firebase Codelab: FriendlyChat
+# FriendlyChat using ReactJS, npm, babel, webpack and material-ui
 
-This is the source code for the Firebase FriendlyChat codelab. It includes start and end versions of the
-code for Web, Android, Objective-C and Swift. To get started open the codelab instructions:
+Heavily modified from the original web app.
 
  - [Web Codelab](https://codelabs.developers.google.com/codelabs/firebase-web/).
  - [Android Codelab](https://codelabs.developers.google.com/codelabs/firebase-android/).
