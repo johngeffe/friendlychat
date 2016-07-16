@@ -20,7 +20,6 @@ import {FbKeys} from '../private/apikeys.js';
 
 /*
 This is an attempt to prevent them from being pushed to github
-accidently.
 // private/apiKeys.js file format:
 
 const FbKeys = {
@@ -208,8 +207,8 @@ var MessageImageForm = React.createClass({
                 width: '40px',
                 float: 'right'
             }}>
-                <input hidden={true} type="file" accept="image/*,capture=camera" onChange={this.handleClick} />
-                <IconButton  onClick={function () { this.mediaCapture.click(); }.bind(this) }
+                <input id="mediaCapture" hidden={true} type="file" accept="image/*,capture=camera" onChange={this.handleClick} />
+                <IconButton  onTouchTap={function () { this.mediaCapture.click(); }.bind(this) }
                     iconStyle={iconStyle.mediumIcon}>
                     <Image />
                 </IconButton>
