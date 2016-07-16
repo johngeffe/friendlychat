@@ -17,6 +17,22 @@ import Avatar from 'material-ui/Avatar';
 import Paper from 'material-ui/Paper';
 
 import {FbKeys} from '../private/apikeys.js';
+
+/*
+This is an attempt to prevent them from being pushed to github
+accidently.
+// private/apiKeys.js file format:
+
+const FbKeys = {
+  apiKey: "< your api key>",
+  authDomain: "< your authDomain >",
+  databaseURL: "https://< your firebase DB >.firebaseio.com",
+  storageBucket: "< your firebase storage bucket>.appspot.com",
+};
+
+export {FbKeys};
+*/
+
 // Needed for onTouchTap
 // http://stackoverflow.com/a/34015469/988941
 injectTapEventPlugin();
