@@ -39,103 +39,6 @@ injectTapEventPlugin();
 var config = FbKeys;
 firebase.initializeApp(config);
 
-const style = {
-    margin: '15px 0 0 10px',
-    width: '120px'
-};
-
-var MessageTextForm = React.createClass({
-    componentWillMount: function () {
-        this.firebaseRefs = firebase.database().ref('messages');
-        this.auth = firebase.auth();
-    },
-    onChange: function (e) {
-        this.setState({ text: e.target.value });
-    },
-    getInitialState: function () {
-        return { text: '', btnState: false, messages: [], message: 'snack bar message', open: false };
-    },
-    handleSubmit: function (e) {
-        e.preventDefault();
-        if (this.auth.currentUser) {
-            var currentUser = this.auth.currentUser;
-            if (this.state.text && this.state.text.trim().length !== 0) {
-                this.firebaseRefs.push({
-                    email: currentUser.email,
-                    name: currentUser.displayName,
-                    photoURL: currentUser.photoURL,
-                    providerData: currentUser.providerData,
-                    providerId: currentUser.providerId,
-                    text: this.state.text,
-                    timestamp: firebase.database.ServerValue.TIMESTAMP,
-                    uid: currentUser.uid
-                });
-                this.setState({
-                    text: ''
-                });
-            }
-        } else {
-            this.setState({ open: true, message: 'You must sign-in first' });
-        }
-    },
-    handleRequestClose: function () {
-        this.setState({
-            open: false,
-        })
-    },
-    componentDidUpdate: function () {
-        // enables/disables submit button based on length of input value.
-        // only setState if necessary or render loop will occur.
-        if ((this.state.text.length > 0) && (this.state.btnState == false)) {
-            this.setState({ btnState: true });
-        } else {
-            if ((this.state.text.length == 0) && (this.state.btnState == true)) {
-                this.setState({ btnState: false });
-            }
-        }
-    },
-    render: function () {
-        return (
-            <div>
-                <form action="#"
-                    style={{
-                        display: 'flex',
-                        flexDirection: 'row',
-                        float: 'left',
-                        paddingLeft: '16px'
-                    }} >
-                    <TextField type="text"
-                        value={this.state.text}
-                        onChange={this.onChange}
-                        floatingLabelText={'Message...'}
-                        floatingLabelFixed={true}
-                        />
-                    <RaisedButton label="send"
-                        style={{ marginTop: '18px', marginLeft: '18px', marginBottom: '0px', width: '80px' }}
-                        disabled={!this.state.btnState}
-                        onTouchTap={this.handleSubmit}
-                        />
-                    <Snackbar
-                        open={this.state.open}
-                        message={this.state.message}
-                        autoHideDuration={2000}
-                        onRequestClose={this.handleRequestClose}
-                        />
-                </form>
-            </div>
-        )
-    }
-});
-const iconStyle = {
-    mediumIcon: {
-        width: 48,
-        height: 48,
-        top: '0px',
-        left: '-25px',
-        position: 'relative',
-        color: '#FFC400'
-    }
-};
 var MessageImageForm = React.createClass({
     getInitialState: function () {
         return { message: 'snack bar message', open: false };
@@ -204,12 +107,19 @@ var MessageImageForm = React.createClass({
             <form action="#" style={{
                 display: 'flex',
                 flexDirection: 'row',
-                width: '40px',
-                float: 'right'
+                float: 'auto',
+                width: '48px',
+                height: '67px'
             }}>
                 <input id="mediaCapture" hidden={true} type="file" accept="image/*,capture=camera" onChange={this.handleClick} />
                 <IconButton  onTouchTap={function () { this.mediaCapture.click(); }.bind(this) }
-                    iconStyle={iconStyle.mediumIcon}>
+                    iconStyle={{
+                        width: 48,
+                        height: 48,
+                        position: 'in-line',
+                        color: '#FFC400',
+                        paddingTop: '12px'
+                    }}>
                     <Image />
                 </IconButton>
                 <Snackbar
@@ -222,6 +132,101 @@ var MessageImageForm = React.createClass({
         )
     }
 });
+
+var MessageTextForm = React.createClass({
+    componentWillMount: function () {
+        this.firebaseRefs = firebase.database().ref('messages');
+        this.auth = firebase.auth();
+    },
+    onChange: function (e) {
+        this.setState({ text: e.target.value });
+    },
+    getInitialState: function () {
+        return { text: '', btnState: false, messages: [], message: 'snack bar message', open: false };
+    },
+    handleSubmit: function (e) {
+        e.preventDefault();
+        if (this.auth.currentUser) {
+            var currentUser = this.auth.currentUser;
+            if (this.state.text && this.state.text.trim().length !== 0) {
+                this.firebaseRefs.push({
+                    email: currentUser.email,
+                    name: currentUser.displayName,
+                    photoURL: currentUser.photoURL,
+                    providerData: currentUser.providerData,
+                    providerId: currentUser.providerId,
+                    text: this.state.text,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    uid: currentUser.uid
+                });
+                this.setState({
+                    text: ''
+                });
+            }
+        } else {
+            this.setState({ open: true, message: 'You must sign-in first' });
+        }
+    },
+    handleRequestClose: function () {
+        this.setState({
+            open: false,
+        })
+    },
+    componentDidUpdate: function () {
+        // enables/disables submit button based on length of input value.
+        // only setState if necessary or render loop will occur.
+        if ((this.state.text.length > 0) && (this.state.btnState == false)) {
+            this.setState({ btnState: true });
+        } else {
+            if ((this.state.text.length == 0) && (this.state.btnState == true)) {
+                this.setState({ btnState: false });
+            }
+        }
+    },
+    render: function () {
+        return (
+            <div>
+                <form action="#"
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        float: 'left',
+                        width: 'calc(100% - 60px)',
+                        height: '67px',
+                    }} >
+                    <TextField type="text"
+                        value={this.state.text}
+                        onChange={this.onChange}
+                        floatingLabelText={'Message...'}
+                        floatingLabelFixed={false}
+                        style={{
+                            padding: '0 16px 0 16px',
+                            marginTop: '0px',
+                            alignItems: 'flex-start',
+                            width: 'calc(100% - 120px)'
+                        }}
+                        />
+                    <RaisedButton label="send"
+                        style={{
+                            width: '120px',
+                            margin: '30px 0 0 30px'
+                        }}
+                        disabled={!this.state.btnState}
+                        onTouchTap={this.handleSubmit}
+                        />
+                </form>
+                <MessageImageForm />
+                <Snackbar
+                    open={this.state.open}
+                    message={this.state.message}
+                    autoHideDuration={2000}
+                    onRequestClose={this.handleRequestClose}
+                    />
+            </div>
+        )
+    }
+});
+
 
 var MessageItems = React.createClass({
     componentWillMount: function () {
@@ -358,10 +363,14 @@ var MessageContainer = React.createClass({
         // able to locate it in the css files.
         return (
             <main>
-                <Paper style={{ minWidth: '427px', width: '427px', margin: '24px', height: '703px', }}>
+                <Paper style={{
+                    minWidth: '427px',
+                    width: '488px',
+                    margin: '24px',
+                    height: '703px'
+                }}>
                     <MessageList />
                     <MessageTextForm/>
-                    <MessageImageForm />
                 </Paper>
             </main>
         )
@@ -492,9 +501,9 @@ var HeaderSection = React.createClass({
                         backgroundColor: '#0288D1',
                         color: '#FFFFFF',
                         minHeight: '72px',
-                        paddingLeft:'40px'
+                        paddingLeft: '40px'
                     }}
-                    titleStyle={{fontSize:'32px',paddingTop:'6px'}}
+                    titleStyle={{ fontSize: '32px', paddingTop: '6px' }}
                     />
             </header>
         )
